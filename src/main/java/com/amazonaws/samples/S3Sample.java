@@ -59,106 +59,78 @@ public class S3Sample {
         logger.info("===========================================\n");
 
         AmazonS3 s3 = createS3bucket(bucketName, region, credentials);
-        try {
-            /*
-             * Create a new S3 bucket - Amazon S3 bucket names are globally unique,
-             * so once a bucket name has been taken by any user, you can't create
-             * another bucket with that same name.
-             *
-             * You can optionally specify a location for your bucket if you want to
-             * keep your data closer to your applications or users.
-             */
-            logger.info("Bucket name :{}", bucketName);
+        logger.info("Bucket name :{}", bucketName);
 
-            /*
-             * List the buckets in your account
-             */
-            logger.info("Listing buckets");
-            for (Bucket bucket : s3.listBuckets()) {
-                logger.info(" - " + bucket.getName());
-            }
+        /*
+         * List the buckets in your account
+         */
+        logger.info("Listing buckets");
+        for (Bucket bucket : s3.listBuckets()) {
+            logger.info(" - " + bucket.getName());
+        }
 
-            /*
-             * Upload an object to your bucket - You can easily upload a file to
-             * S3, or upload directly an InputStream if you know the length of
-             * the data in the stream. You can also specify your own metadata
-             * when uploading to S3, which allows you set a variety of options
-             * like content-type and content-encoding, plus additional metadata
-             * specific to your applications.
-             */
-            logger.info("Uploading a new object to S3 from a file\n");
-            addItemToBucket(s3,bucketName,key,createSampleFile());
-            ObjectListing objectListing = s3.listObjects(new ListObjectsRequest()
-                    .withBucketName(bucketName));
-            for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
-                logger.info(" - " + objectSummary.getKey() + "  " +
-                        "(size = " + objectSummary.getSize() + ")");
-            }
-            /*
-             * Download an object - When you download an object, you get all of
-             * the object's metadata and a stream from which to read the contents.
-             * It's important to read the contents of the stream as quickly as
-             * possibly since the data is streamed directly from Amazon S3 and your
-             * network connection will remain open until you read all the data or
-             * close the input stream.
-             *
-             * GetObjectRequest also supports several other options, including
-             * conditional downloading of objects based on modification times,
-             * ETags, and selectively downloading a range of an object.
-             */
-            logger.info("Downloading an object");
-            S3Object object = getItemFromBucket(s3, bucketName, key);
-            logger.info("Content-Type: " + object.getObjectMetadata().getContentType());
-            displayTextInputStream(object.getObjectContent());
+        /*
+         * Upload an object to your bucket - You can easily upload a file to
+         * S3, or upload directly an InputStream if you know the length of
+         * the data in the stream. You can also specify your own metadata
+         * when uploading to S3, which allows you set a variety of options
+         * like content-type and content-encoding, plus additional metadata
+         * specific to your applications.
+         */
+        logger.info("Uploading a new object to S3 from a file\n");
+        addItemToBucket(s3, bucketName, key, createSampleFile());
+        ObjectListing objectListing = s3.listObjects(new ListObjectsRequest()
+                .withBucketName(bucketName));
+        for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
+            logger.info(" - " + objectSummary.getKey() + "  " +
+                    "(size = " + objectSummary.getSize() + ")");
+        }
+        /*
+         * Download an object - When you download an object, you get all of
+         * the object's metadata and a stream from which to read the contents.
+         * It's important to read the contents of the stream as quickly as
+         * possibly since the data is streamed directly from Amazon S3 and your
+         * network connection will remain open until you read all the data or
+         * close the input stream.
+         *
+         * GetObjectRequest also supports several other options, including
+         * conditional downloading of objects based on modification times,
+         * ETags, and selectively downloading a range of an object.
+         */
+        logger.info("Downloading an object");
+        S3Object object = getItemFromBucket(s3, bucketName, key);
+        logger.info("Content-Type: " + object.getObjectMetadata().getContentType());
+        displayTextInputStream(object.getObjectContent());
 
-            /*
-             * List objects in your bucket by prefix - There are many options for
-             * listing the objects in your bucket.  Keep in mind that buckets with
-             * many objects might truncate their results when listing their objects,
-             * so be sure to check if the returned object listing is truncated, and
-             * use the AmazonS3.listNextBatchOfObjects(...) operation to retrieve
-             * additional results.
-             */
-            logger.info("Listing objects");
-            ObjectListing objectListing1 = s3.listObjects(new ListObjectsRequest()
-                    .withBucketName(bucketName)
-                    .withPrefix("My"));
-            for (S3ObjectSummary objectSummary : objectListing1.getObjectSummaries()) {
-                logger.info(" - " + objectSummary.getKey() + "  " +
-                        "(size = " + objectSummary.getSize() + ")");
-            }
+        /*
+         * List objects in your bucket by prefix - There are many options for
+         * listing the objects in your bucket.  Keep in mind that buckets with
+         * many objects might truncate their results when listing their objects,
+         * so be sure to check if the returned object listing is truncated, and
+         * use the AmazonS3.listNextBatchOfObjects(...) operation to retrieve
+         * additional results.
+         */
+        logger.info("Listing objects");
+        ObjectListing objectListing1 = s3.listObjects(new ListObjectsRequest()
+                .withBucketName(bucketName)
+                .withPrefix("My"));
+        for (S3ObjectSummary objectSummary : objectListing1.getObjectSummaries()) {
+            logger.info(" - " + objectSummary.getKey() + "  " +
+                    "(size = " + objectSummary.getSize() + ")");
+        }
 
-            /*
-             * Delete an object - Unless versioning has been turned on for your bucket,
-             * there is no way to undelete an object, so use caution when deleting objects.
-             */
-            logger.info("Deleting an object\n");
-            deleteItemFromBucket(s3, bucketName, key);
+        logger.info("Deleting an object\n");
+        deleteItemFromBucket(s3, bucketName, key);
 
-            /*
-             * Delete a bucket - A bucket must be completely empty before it can be
-             * deleted, so remember to delete any objects from your buckets before
-             * you try to delete them.
-             */
+        /*
+         * Delete a bucket - A bucket must be completely empty before it can be
+         * deleted, so remember to delete any objects from your buckets before
+         * you try to delete them.
+         */
 
-            for (Bucket bucket : s3.listBuckets()) {
-                logger.info("Deleting" + bucket.getName());
-                deleteBucket(bucketName, s3);
-            }
-
-        } catch (AmazonServiceException ase) {
-            logger.error("Caught an AmazonServiceException, which means your request made it "
-                    + "to Amazon S3, but was rejected with an error response for some reason.");
-            logger.error("Error Message:    " + ase.getMessage());
-            logger.error("HTTP Status Code: " + ase.getStatusCode());
-            logger.error("AWS Error Code:   " + ase.getErrorCode());
-            logger.error("Error Type:       " + ase.getErrorType());
-            logger.error("Request ID:       " + ase.getRequestId());
-        } catch (AmazonClientException ace) {
-            logger.error("Caught an AmazonClientException, which means the client encountered "
-                    + "a serious internal problem while trying to communicate with S3, "
-                    + "such as not being able to access the network.");
-            logger.error("Error Message: " + ace.getMessage());
+        for (Bucket bucket : s3.listBuckets()) {
+            logger.info("Deleting" + bucket.getName());
+            deleteBucket(bucketName, s3);
         }
     }
 
@@ -202,7 +174,6 @@ public class S3Sample {
     }
 
     private static AmazonS3 createS3bucket(String bucketName, Regions region, AWSCredentials credentials) {
-
         AmazonS3 s3 = AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withRegion(region.getName())
@@ -228,19 +199,33 @@ public class S3Sample {
         return s3;
     }
 
-    private static boolean addItemToBucket(AmazonS3 s3, String bucketName,String itemName, File file) {
-        s3.putObject(new PutObjectRequest(bucketName, itemName, file));
+    private static boolean addItemToBucket(AmazonS3 s3, String bucketName, String itemName, File file) {
+        PutObjectResult result = s3.putObject(new PutObjectRequest(bucketName, itemName, file));
+        logger.info("result = {}", result);
         return true;
     }
 
+    /*
+     * Delete an object - Unless versioning has been turned on for your bucket,
+     * there is no way to undelete an object, so use caution when deleting objects.
+     */
     private static boolean deleteItemFromBucket(AmazonS3 s3, String bucketName, String itemName) {
-        s3.deleteObject(bucketName, itemName);
+        try {
+            s3.deleteObject(bucketName, itemName);
+        } catch (AmazonServiceException ase) {
+            logger.error("Caught an AmazonServiceException, which means your request made it "
+                    + "to Amazon S3, but was rejected with an error response for some reason.");
+            logger.error("Error Message:    " + ase.getMessage());
+            logger.error("HTTP Status Code: " + ase.getStatusCode());
+            logger.error("AWS Error Code:   " + ase.getErrorCode());
+            logger.error("Error Type:       " + ase.getErrorType());
+            logger.error("Request ID:       " + ase.getRequestId());
+        }
         return true;
     }
 
     private static S3Object getItemFromBucket(AmazonS3 s3, String bucketName, String itemName) {
-        S3Object object = s3.getObject(new GetObjectRequest(bucketName, itemName));
-        return object;
+        return s3.getObject(new GetObjectRequest(bucketName, itemName));
     }
 
     private static AWSCredentials getCredentials() {
